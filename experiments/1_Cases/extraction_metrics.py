@@ -1,11 +1,11 @@
 from ocpa.objects.log.importer.ocel import factory as ocel_json_import_factory
 from ocpa.objects.log.importer.csv import factory as ocel_csv_import_factory
 from ocpa.algo.conformance.execution_extraction import algorithm as extraction_metric_factory
-from ocpa.algo.util.process_executions.factory import CONN_COMP,LEAD_TYPE
+from ocpa.algo.util.process_executions.factory import CONN_COMP,LEAD_TYPE, SINGLE_FLATTENING
 
-extraction_techniques = [CONN_COMP,LEAD_TYPE]
-json_logs = ["P2P","Order"]
-csv_logs = ["Fin"]
+extraction_techniques = [CONN_COMP,LEAD_TYPE,SINGLE_FLATTENING]
+json_logs = ["P2P"]#,"Order"]
+csv_logs = []#["Fin"]
 logs = json_logs + csv_logs
 log_files = {"P2P":"../../sample_logs/jsonocel/p2p-normal.jsonocel",
              "Fin":"../../sample_logs/csv/BPI2017-Final.csv",
@@ -39,7 +39,12 @@ for log in logs:
             for o_type in log_ots[log]:
                 add_params = {"execution_extraction": extraction, "leading_type":o_type}
                 param_space.append(log_parameters[log] | add_params)
+        elif extraction == SINGLE_FLATTENING:
+            for o_type in log_ots[log]:
+                add_params = {"execution_extraction": extraction, "flattening_type":o_type}
+                param_space.append(log_parameters[log] | add_params)
     for param in param_space:
+        print(param)
         if log in json_logs:
             ocel = ocel_json_import_factory.apply(log_files[log], parameters = param)
         else:
