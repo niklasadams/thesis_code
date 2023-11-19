@@ -244,6 +244,27 @@ class OCEL:
         '''
         return self.graph.eog.subgraph(self.process_executions[process_exec_id])
 
+    #Note: Not to be released, this is kind of a hacky way to get the process execution graphs flattened for experiments.
+    #This is supposed to emulate an extraction of the event log where some connected objects are already merged into
+    #a sequence.
+    def get_flattened_process_execution_graph(self, process_exec_id):
+        import networkx as nx
+        '''Returns the process execution graph of a process execution.
+
+        The process_exec_id refers to the index of the process execution in the list of process executions held by this
+        class.
+
+        :param process_exec_id: index of the targeted process execution
+        :type process_exec_id: int
+        :return: process execution graph
+        :rtype: NetworkX Graph
+        '''
+        process_execution_graph = nx.Graph()
+        events = sorted(self.process_executions[process_exec_id])
+        process_execution_graph.add_nodes_from(events)
+        process_execution_graph.add_edges_from([(events[i],events[i+1]) for i in range(0,len(events)-1)])
+        return process_execution_graph
+
     
     def _calculate_process_execution_objects(self):
         from ocpa.algo.util.process_executions import factory as process_execution_factory
