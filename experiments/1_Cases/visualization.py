@@ -5,11 +5,11 @@ from ocpa.algo.util.process_executions.factory import CONN_COMP,LEAD_TYPE, SINGL
 
 def sns_settings():
     ax = plt.gca()
-    plt.legend(loc='lower left',fontsize=14)
-    ax.set_xlabel(ax.get_xlabel(), fontsize=16)
-    ax.set_ylabel(ax.get_ylabel(), fontsize=16)
-    plt.xticks(rotation=-9,fontsize = 14)
-    plt.yticks(rotation=0, fontsize=14)
+    plt.legend(loc='lower left',fontsize=16)
+    ax.set_xlabel(ax.get_xlabel(), fontsize=20)
+    ax.set_ylabel(ax.get_ylabel(), fontsize=20)
+    plt.xticks(rotation=-7,fontsize = 18)
+    plt.yticks(rotation=0, fontsize=18)
     plt.tight_layout()
 
 sns.color_palette("tab10")
@@ -24,7 +24,7 @@ df["Log"] = df["Log"].replace({"P2P":"P2P",
              "Fin":"Loan Application",
              "Order":"Order Management",
              "Incident":"Incident"})
-figsize = (9,5)
+figsize = (10,5)
 
 plt.figure(figsize=figsize)
 sns.barplot(data = df,hue="Log",y=CONV,x="Extraction Technique")

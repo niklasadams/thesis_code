@@ -57,9 +57,30 @@ class OCEL:
             self._variant_calculation = self.parameters["variant_calculation"]
         else:
             self._variant_calculation = TWO_PHASE
+
+
+        ##### Additional objects just for the evaluation of the thesis
+        self._extraction_time = None
         #Remove events without any objects in the table
         #self.log.log = self.log.log[self.log.log.apply(lambda x: any([len(x[ot]) > 0 for ot in self.object_types]))]
     # _get_process_execution_objects
+
+    ########################################## ONLY FOR THESIS
+    @property
+    def extraction_time(self):
+        '''
+        Each process execution is identified by its index in the process_execution list. Using this index, one can retrieve
+        this process execution's associated objects through this list.
+
+        :return: List of the objects of an the executions. Equally indexed as the process_execution list.
+        :rtype: list(list(Tuple(string, string)))
+        -------
+
+        '''
+        if not self._process_executions:
+            self._calculate_process_execution_objects()
+        return self._extraction_time
+    ###########################################################
 
     @property
     def process_execution_objects(self):
@@ -268,7 +289,7 @@ class OCEL:
     
     def _calculate_process_execution_objects(self):
         from ocpa.algo.util.process_executions import factory as process_execution_factory
-        self._process_executions, self._process_execution_objects, self._process_execution_mappings = process_execution_factory.apply(
+        self._process_executions, self._process_execution_objects, self._process_execution_mappings, self._extraction_time = process_execution_factory.apply(
             self, self._execution_extraction, parameters=self.parameters)
 
     def _calculate_variants(self):

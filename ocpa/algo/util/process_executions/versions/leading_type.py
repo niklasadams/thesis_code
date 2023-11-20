@@ -1,5 +1,7 @@
 import itertools
 import networkx as nx
+import time
+
 def apply(ocel, parameters):
     '''
     Extracting process executions through leading type extraction of the object graph. Calling this method is usually
@@ -15,6 +17,7 @@ def apply(ocel, parameters):
     :return: cases, object_mapping, case_mapping
 
     '''
+    s_time = time.time()
     case_mapping = {}
     log_df = ocel.log.log.copy()
     log_df["event_objects"] = log_df.apply(lambda x: set([(ot, o) for ot in ocel.object_types for o in x[ot]]),
@@ -87,4 +90,4 @@ def apply(ocel, parameters):
             if not event in case_mapping.keys():
                 case_mapping[event] = []
             case_mapping[event] += [case_index]
-    return cases, obs, case_mapping
+    return cases, obs, case_mapping, time.time()-s_time

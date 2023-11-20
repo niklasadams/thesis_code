@@ -1,4 +1,5 @@
 import pandas as pd
+import time
 
 def apply(ocel, parameters):
     '''
@@ -15,6 +16,7 @@ def apply(ocel, parameters):
     :return: cases, object_mapping, case_mapping
 
     '''
+    s_time = time.time()
     o_type = parameters["flattening_type"]
     log_df = ocel.log._log.copy()
     events_to_objects = pd.Series(log_df[o_type].values, index=log_df["event_id"]).to_dict()
@@ -31,4 +33,4 @@ def apply(ocel, parameters):
         for event in case:
             case_mapping.setdefault(event,[]).append(o)
 
-    return cases, obs, case_mapping
+    return cases, obs, case_mapping, time.time()-s_time

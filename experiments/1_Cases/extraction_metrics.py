@@ -6,8 +6,8 @@ import pandas as pd
 
 
 extraction_techniques = [CONN_COMP,LEAD_TYPE,SINGLE_FLATTENING]
-json_logs = []#["P2P","Order"]
-csv_logs = ["Fin"]#["Incident","Fin"]
+json_logs = ["P2P","Order"]
+csv_logs = ["Incident","Fin"]
 logs = json_logs + csv_logs
 log_files = {"P2P":"../../sample_logs/jsonocel/P2P_large.jsonocel",
              "Fin":"../../sample_logs/csv/BPI2017-Final.csv",
