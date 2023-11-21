@@ -11,7 +11,7 @@ import os
 
 
 extraction_techniques = [CONN_COMP,LEAD_TYPE,SINGLE_FLATTENING]
-json_logs = []#["P2P","Order"]
+json_logs = ["P2P","Order"]
 csv_logs = ["Incident","Fin"]
 logs = json_logs + csv_logs
 log_files = {"P2P":"../../sample_logs/jsonocel/P2P_large.jsonocel",
@@ -109,10 +109,13 @@ for log in logs:
                 o_type = param["flattening_type"]
             elif "leading_type" in param.keys():
                 o_type = param["leading_type"]
+            extraction_technique = param["execution_extraction"]
+            if param["Post-extraction flattening"]:
+                extraction_technique += " Flattened"
             results_list.append({
                 "Log":log,
                 "Number of Events":len(ocel.log.log),
-                "Extraction Technique":param["execution_extraction"],
+                "Extraction Technique":extraction_technique,
                 "Type": o_type,
                 "Extraction Time":extraction_time
             })
