@@ -59,12 +59,14 @@ for log in logs:
                 param_space.append(log_parameters[log] | add_params)
     for param in param_space:
         print(param)
+
         if "Post-extraction flattening" not in param:
             param["Post-extraction flattening"] = False
         if log in json_logs:
             ocel = ocel_json_import_factory.apply(log_files[log], parameters = param)
         else:
             ocel = ocel_csv_import_factory.apply(log_files[log], parameters = param)
+
         results = extraction_metric_factory.apply(ocel, parameters = param)
         print(results)
         o_type = None
@@ -82,6 +84,41 @@ for log in logs:
             "Type": o_type
         } | results
         )
+        #Descriptive statistics
+        print(param)
+        print("Number of Events"+str(len(ocel.log.log)))
+        print("Number of Types" + str(len(ocel.object_types)))
+        all_objects = set()
+        min_o_count, max_o_count = 10000000,0
+        sum_o_counts = 0
+        min_e_count, max_e_count = 10000000, 0
+        sum_e_counts = 0
+        for i in range(0,len(ocel.process_executions)):
+            p_obs = ocel.process_execution_objects[i]
+            p_evs = ocel.process_executions[i]
+            num_evs = len(p_evs)
+            if num_evs > max_e_count:
+                max_e_count = num_evs
+            if min_e_count > num_evs:
+                min_e_count = num_evs
+            sum_e_counts += num_evs
+
+
+            all_objects = all_objects.union(set(p_obs))
+            num_obs = len(p_obs)
+            if num_obs > max_o_count:
+                max_o_count = num_obs
+            if min_o_count > num_obs:
+                min_o_count = num_obs
+            sum_o_counts += num_obs
+        print("Number of Objects" + str(len(all_objects)))
+        print("Number of Process Executions" + str(len(ocel.process_executions)))
+        print("Min Events per Execution" + str(min_e_count))
+        print("Max Events per Execution" + str(max_e_count))
+        print("Avg Events per Execution" + str(sum_e_counts / len(ocel.process_executions)))
+        print("Min Objects per Execution" + str(min_o_count))
+        print("Max Objects per Execution" + str(max_o_count))
+        print("Avg Objects per Execution" + str(sum_o_counts/len(ocel.process_executions)))
     results_df = pd.DataFrame(results_list)
     results_df.to_csv("results_after_"+log+".csv")
 results_df = pd.DataFrame(results_list)
