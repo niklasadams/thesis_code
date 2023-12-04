@@ -19,6 +19,7 @@ def apply(ocel, parameters):
     :return: variants, v_freq_list, variant_graphs, variants_dict
 
     '''
+    s_time = time.time()
     timeout = parameters["timeout"] if "timeout" in parameters.keys() else 3600
     ocel.log.log["event_objects"] = ocel.log.log.apply(lambda x: [(ot, o) for ot in ocel.object_types for o in x[ot]],
                                                axis=1)
@@ -91,4 +92,4 @@ def apply(ocel, parameters):
             variant_event_map[e] += [v_id]
     ocel.log.log["event_variant"] = ocel.log.log["event_id"].map(variant_event_map)
     ocel.log.log.drop('event_objects', axis=1, inplace=True)
-    return variants, v_freq_list, variant_graphs, variants_dict
+    return variants, v_freq_list, variant_graphs, variants_dict, time.time() - s_time
