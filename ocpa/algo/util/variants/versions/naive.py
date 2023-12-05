@@ -96,7 +96,7 @@ def apply(ocel, parameters):
     for _class in variants_graph_dict.keys():
         subclass_counter = 0
         subclass_mappings = {}
-        for j in tqdm(range(0, len(variants_graph_dict[_class]))):
+        for j in range(0, len(variants_graph_dict[_class])):
             exec = variants_graph_dict[_class][j]
             case_id = variants_dict[_class][j]
             exec_objects = ocel.process_execution_objects[case_id]

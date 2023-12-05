@@ -9,12 +9,15 @@ from ocpa.algo.util.filtering.log import case_filtering
 import numpy as np
 import re
 import os
+from variant_computation_logic import compute_variants
+from multiprocessing.dummy import Pool as ThreadPool
+from tqdm import tqdm
 
 
 extraction_techniques = [CONN_COMP,LEAD_TYPE]
 computation_techniques = [NAIVE_MAPPING,ONE_PHASE,TWO_PHASE]#[ONE_PHASE,TWO_PHASE]
-json_logs = []#["P2P"]#[]#["P2P"]#["P2P","Order"]
-csv_logs = ["Fin"]#["Incident","Fin"]
+json_logs = ["P2P"]#["P2P"]#[]#["P2P"]#["P2P","Order"]
+csv_logs = []#["Incident","Fin"]
 logs = json_logs + csv_logs
 log_files = {"P2P":"../../sample_logs/jsonocel/P2P_large.jsonocel",
              "Fin":"../../sample_logs/csv/BPI2017-Final.csv",
@@ -71,7 +74,7 @@ for log in logs:
 
 ################################ Experimental Part
 results_list = []
-
+total_param_space = []
 for log in logs:
     param_space = []
     add_params = {}
@@ -105,85 +108,19 @@ for log in logs:
             ####collected_var_params.append(var_params)
 
     param_space = [{**d1, **d2} for d1 in collected_add_params for d2 in collected_var_params]
+    param_space = [{**d1, **d2} for d1 in param_space for d2 in [{"Log Subsize":i}for i in range(1,11)]]
+    param_space = [{**d1, **d2} for d1 in param_space for d2 in [{"Log": log}]]
     print(param_space)
-    for param in param_space:
-        if "Post-extraction flattening" not in param:
-            param["Post-extraction flattening"] = False
-        raw_ocel = ocel_json_import_factory.apply("./sublogs/" + log + "_" + str(10) + ".jsonocel", parameters=param)
-        for i in range(1, 11):
-            print(i)
-            # I need to filer on the event log directly to gradually inrease the cases with the ordering preserved
-            # This is only for comparison reasons, since the one on one checking is quite sensitive to ordering and
-            # will produce inconsistent results
-            ocel = case_filtering.filter_process_executions(raw_ocel, cases=raw_ocel.process_executions[
-                                                                        0:int(len(raw_ocel.process_executions) * (i / 10))])
-            #ocel = ocel_json_import_factory.apply("./sublogs/"+log+"_"+str(i)+".jsonocel", parameters=param)
-            computation_time = ocel.variant_computation_time
-            comp_type = param["variant_calculation"]
-            o_type = None
-            if "leading_type" in param.keys():
-                o_type = param["leading_type"]
-            naive_projection = None
-            if "naive_project_object_set" in param.keys():
-                naive_projection = True
-            extraction_technique = param["execution_extraction"]
-            all_objects = set()
-            min_o_count, max_o_count = 10000000, 0
-            sum_o_counts = 0
-            min_e_count, max_e_count = 10000000, 0
-            sum_e_counts = 0
-            for i in range(0, len(ocel.process_executions)):
-                p_obs = ocel.process_execution_objects[i]
-                p_evs = ocel.process_executions[i]
-                num_evs = len(p_evs)
-                if num_evs > max_e_count:
-                    max_e_count = num_evs
-                if min_e_count > num_evs:
-                    min_e_count = num_evs
-                sum_e_counts += num_evs
+    total_param_space += param_space
 
-                all_objects = all_objects.union(set(p_obs))
-                num_obs = len(p_obs)
-                if num_obs > max_o_count:
-                    max_o_count = num_obs
-                if min_o_count > num_obs:
-                    min_o_count = num_obs
-                sum_o_counts += num_obs
-            if computation_time == -1:
-                individual_results = {
-                    "Log": log,
-                    "Number of Events": len(ocel.log.log),
-                    "Extraction Technique": extraction_technique,
-                    "Number of Process Executions":len(ocel.process_executions),
-                    "Variant Computation": comp_type,
-                    "Naive Object String Projection":naive_projection,
-                    "Number of Variants": -1,
-                    "Type": o_type,
-                    "Computation Time": -1,
-                    "Average Number of Objects per Execution": sum_o_counts/len(ocel.process_executions),
-                    "Average Number of Events per Execution": sum_e_counts / len(ocel.process_executions),
-                    "Number of Object Types": len(ocel.object_types)
-                }
-            else:
-                individual_results = {
-                    "Log":log,
-                    "Number of Events":len(ocel.log.log),
-                    "Extraction Technique":extraction_technique,
-                    "Number of Process Executions": len(ocel.process_executions),
-                    "Variant Computation":comp_type,
-                    "Naive Object String Projection": naive_projection,
-                    "Number of Variants":len(ocel.variants),
-                    "Type": o_type,
-                    "Computation Time":computation_time,
-                    "Average Number of Objects per Execution": sum_o_counts / len(ocel.process_executions),
-                    "Average Number of Events per Execution": sum_e_counts / len(ocel.process_executions),
-                    "Number of Object Types": len(ocel.object_types)
-                }
-            results_list.append(individual_results)
-            print(len(ocel.process_executions))
-            print(individual_results)
-    results_dict = pd.DataFrame(results_list)
-    results_dict.to_csv("computationtime_results_after_"+log+".csv")
+pool = ThreadPool(4)
+results = list(tqdm(pool.imap(compute_variants, total_param_space), total=len(total_param_space)))
+print(results)
+results_dict = pd.DataFrame(results)
+results_dict.to_csv("computationtime_results_after_"+log+".csv")
 
-results_dict = pd.DataFrame(results_list)
+results_dict = pd.DataFrame(results)
 results_dict.to_csv("computationtime_results.csv")
+
+
+
