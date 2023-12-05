@@ -151,9 +151,9 @@ class OCEL:
         -------
 
         '''
-        if not self._process_executions:
+        if not self._variants:
             self._calculate_variants()
-        return self._extraction_time
+        return self._variant_computation_time
 
     ###########################################################
     # _get_variants

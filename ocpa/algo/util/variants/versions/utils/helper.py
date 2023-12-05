@@ -18,3 +18,14 @@ def project_subgraph_on_activity(ocel, v_g, case_id, mapping_objects, mapping_ac
             [str(e) for e in sorted(list(set(mapping_objects[source]).intersection(set(mapping_objects[target])) & set(
                 ocel.process_execution_objects[case_id])))])
     return v_g_
+
+def project_subgraph_on_activity_and_objects(ocel, v_g, case_id, mapping_objects, mapping_activity):
+    v_g_ = v_g.copy()
+    for node in v_g.nodes():
+        if not set(mapping_objects[node]) & set(ocel.process_execution_objects[case_id]):
+            v_g_.remove_node(node)
+            continue
+        v_g_.nodes[node]['label'] = mapping_activity[node]
+        v_g_.nodes[node]['objects'] = set([e for e in sorted(list(set(mapping_objects[node]) & set(ocel.process_execution_objects[case_id])))])
+    return v_g_
+

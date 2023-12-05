@@ -10,3 +10,4 @@ SINGLE_FLATTENING = "single_type_flattening"
 
 TWO_PHASE= "two_phase"
 ONE_PHASE = "one_phase"
+NAIVE_MAPPING = "naive_mapping"
