@@ -117,10 +117,11 @@ pool = ThreadPool(4)
 results = list(tqdm(pool.imap(compute_variants, total_param_space), total=len(total_param_space)))
 print(results)
 results_dict = pd.DataFrame(results)
-results_dict.to_csv("computationtime_results_after_"+log+".csv")
+results_dict.to_csv("computationtime_results.csv")
 
 results_dict = pd.DataFrame(results)
-results_dict.to_csv("computationtime_results.csv")
+results_dict.to_csv("computationtime_results_after_.csv")
+
 
 
 
