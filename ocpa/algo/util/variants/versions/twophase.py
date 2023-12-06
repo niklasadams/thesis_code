@@ -2,6 +2,10 @@ import time
 import networkx as nx
 import ocpa.algo.util.variants.versions.utils.helper as helper_functions
 
+WL_STANDARD = "weisfeiler-lehman-standard-3-iterations"
+WL_1 = "weisfeiler-lehman-1-iteration"
+WL_2 = "weisfeiler-lehman-2-iterations"
+
 
 def apply(ocel,parameters):
     '''
@@ -26,6 +30,7 @@ def apply(ocel,parameters):
     '''
     s_time = time.time()
     timeout = parameters["timeout"] if "timeout" in parameters.keys() else 3600
+    hashing = parameters["hashing_technique"] if "hashing_technique" in parameters.keys() else WL_STANDARD
     ocel.log.log["event_objects"] = ocel.log.log.apply(
         lambda x: [(ot, o) for ot in ocel.object_types for o in x[ot]], axis=1)
     variants_dict = dict()
@@ -36,10 +41,21 @@ def apply(ocel,parameters):
         zip(ocel.log.log["event_id"], ocel.log.log["event_activity"]))
     mapping_objects = dict(
         zip(ocel.log.log["event_id"], ocel.log.log["event_objects"]))
+    hash_time = time.time()
     for v_g in ocel.process_executions:
         case = helper_functions.project_subgraph_on_activity(ocel, ocel.graph.eog.subgraph(v_g), case_id, mapping_objects, mapping_activity)
-        variant = nx.weisfeiler_lehman_graph_hash(
-            case, node_attr="label", edge_attr="type")
+        variant = ""
+        if hashing == WL_STANDARD:
+            variant = nx.weisfeiler_lehman_graph_hash(
+                case, node_attr="label", edge_attr="type")
+        elif hashing == WL_1:
+            variant = nx.weisfeiler_lehman_graph_hash(
+                case, node_attr="label", edge_attr="type", iterations = 1)
+        elif hashing == WL_2:
+            variant = nx.weisfeiler_lehman_graph_hash(
+                case, node_attr="label", edge_attr="type", iterations = 2)
+        else:
+            raise Exception("Hashing technique not available")
         variant_string = variant
         if variant_string not in variants_dict:
             variants_dict[variant_string] = []
@@ -49,8 +65,8 @@ def apply(ocel,parameters):
         variants_dict[variant_string].append(case_id)
         variants_graph_dict[variant_string].append(case)
         case_id += 1
-
-    start_time = time.time()
+    hash_time = time.time()-hash_time
+    iso_time = time.time()
     if parameters["exact_variant_calculation"] if "exact_variant_calculation" in parameters.keys() else False:
         for _class in variants_graph_dict.keys():
             subclass_counter = 0
@@ -69,7 +85,7 @@ def apply(ocel,parameters):
                     continue
                 subclass_counter +=1
                 subclass_mappings[subclass_counter] = [(exec,case_id)]
-                if (time.time() - start_time) > timeout:
+                if (time.time() - iso_time) > timeout:
                     return None, None, None, None, -1
                     raise Exception("timeout")
             for ind in subclass_mappings.keys():
@@ -78,7 +94,7 @@ def apply(ocel,parameters):
                 variant_graphs[_class+str(ind)] = (exec, ocel.process_execution_objects[case_id])
             del variants_dict[_class]
             del variant_graphs[_class]
-
+    iso_time = time.time()-iso_time
     variant_frequencies = {
         v: len(variants_dict[v]) / len(ocel.process_executions) for v in variants_dict.keys()}
     variants, v_freq_list = map(list,
@@ -94,4 +110,4 @@ def apply(ocel,parameters):
             variant_event_map[e] += [v_id]
     ocel.log.log["event_variant"] = ocel.log.log["event_id"].map(variant_event_map)
     ocel.log.log.drop('event_objects', axis=1, inplace=True)
-    return variants, v_freq_list, variant_graphs, variants_dict, time.time() - s_time
+    return variants, v_freq_list, variant_graphs, variants_dict, time.time() - s_time, hash_time, iso_time

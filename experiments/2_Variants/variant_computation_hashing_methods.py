@@ -4,6 +4,7 @@ from ocpa.algo.conformance.execution_extraction import algorithm as extraction_m
 from ocpa.objects.log.exporter.ocel import factory as ocel_export_factory
 from ocpa.algo.util.process_executions.factory import CONN_COMP,LEAD_TYPE
 from ocpa.algo.util.variants.factory import ONE_PHASE, TWO_PHASE, NAIVE_MAPPING
+from ocpa.algo.util.variants.versions.twophase import WL_STANDARD, WL_1, WL_2
 import pandas as pd
 from ocpa.algo.util.filtering.log import case_filtering
 import numpy as np
@@ -15,9 +16,10 @@ from tqdm import tqdm
 
 
 extraction_techniques = [CONN_COMP,LEAD_TYPE]
-computation_techniques = [NAIVE_MAPPING,ONE_PHASE,TWO_PHASE]#[ONE_PHASE,TWO_PHASE]
-json_logs = ["Order","P2P"]#["P2P"]#[]#["P2P"]#["P2P","Order"]
-csv_logs = ["Fin","Incident"]#["Incident","Fin"]
+#computation_techniques = [TWO_PHASE]#[NAIVE_MAPPING,ONE_PHASE,ONE_PHASE,TWO_PHASE]
+hashing_techniques = [WL_1,WL_2, WL_STANDARD]
+json_logs = ["P2P"]#["Order","P2P"]#["P2P"]#[]#["P2P"]#["P2P","Order"]
+csv_logs = []#["Fin","Incident"]#["Incident","Fin"]
 logs = json_logs + csv_logs
 log_files = {"P2P":"../../sample_logs/jsonocel/P2P_large.jsonocel",
              "Fin":"../../sample_logs/csv/BPI2017-Final.csv",
@@ -93,21 +95,13 @@ for log in logs:
                 add_params = {"execution_extraction": extraction, "leading_type": o_type}
                 collected_add_params.append(add_params)
                 #param_space.append(log_parameters[log] | add_params)
-    for comp_type in computation_techniques:
+
+    comp_type = TWO_PHASE
+    for hashing in hashing_techniques:
         var_params = {"variant_calculation": comp_type, "timeout": 2000}
-        if comp_type == ONE_PHASE:
-            collected_var_params.append(var_params)
-        #For Two Phase we need to specify the exact calculation
-        if comp_type == TWO_PHASE:
-            var_params = var_params | {"exact_variant_calculation": True}
-            collected_var_params.append(var_params)
-        # We cannot use naive in these cases as there are just too many objects and it does no terminate in a reasonable
-        # time
-        if log != "Incident" and log != "Order":
-            if comp_type == NAIVE_MAPPING:
-                collected_var_params.append(var_params)
-                ####var_params = var_params | {"naive_project_object_set": True}
-                ####collected_var_params.append(var_params)
+        var_params = var_params | {"exact_variant_calculation": True, "hashing_technique":hashing}
+        collected_var_params.append(var_params)
+
 
     param_space = [{**d1, **d2} for d1 in collected_add_params for d2 in collected_var_params]
     param_space = [{**d1, **d2} for d1 in param_space for d2 in [{"Log Subsize":i}for i in range(1,11)]]
@@ -120,7 +114,7 @@ pool = ThreadPool(4)
 results = list(tqdm(pool.imap(compute_variants, total_param_space), total=len(total_param_space)))
 print(results)
 results_dict = pd.DataFrame(results)
-results_dict.to_csv("computationtime_results.csv")
+results_dict.to_csv("hashing_validation_results.csv")
 
 #results_dict = pd.DataFrame(results)
 #results_dict.to_csv("results_scalability_a_after_Fin_P2P_Order.csv")

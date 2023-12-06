@@ -62,6 +62,8 @@ class OCEL:
         ##### Additional objects just for the evaluation of the thesis
         self._extraction_time = None
         self._variant_computation_time = None
+        self._variant_hash_time = None
+        self._variant_iso_time = None
         #Remove events without any objects in the table
         #self.log.log = self.log.log[self.log.log.apply(lambda x: any([len(x[ot]) > 0 for ot in self.object_types]))]
     # _get_process_execution_objects
@@ -154,6 +156,36 @@ class OCEL:
         if not self._variants:
             self._calculate_variants()
         return self._variant_computation_time
+
+    @property
+    def variant_hash_time(self):
+        '''
+        Each process execution is identified by its index in the process_execution list. Using this index, one can retrieve
+        this process execution's associated objects through this list.
+
+        :return: List of the objects of an the executions. Equally indexed as the process_execution list.
+        :rtype: list(list(Tuple(string, string)))
+        -------
+
+        '''
+        if not self._variants:
+            self._calculate_variants()
+        return self._variant_hash_time
+
+    @property
+    def variant_iso_time(self):
+        '''
+        Each process execution is identified by its index in the process_execution list. Using this index, one can retrieve
+        this process execution's associated objects through this list.
+
+        :return: List of the objects of an the executions. Equally indexed as the process_execution list.
+        :rtype: list(list(Tuple(string, string)))
+        -------
+
+        '''
+        if not self._variants:
+            self._calculate_variants()
+        return self._variant_iso_time
 
     ###########################################################
     # _get_variants
@@ -312,5 +344,5 @@ class OCEL:
 
     def _calculate_variants(self):
         from ocpa.algo.util.variants import factory as variant_factory
-        self._variants, self._variant_frequency, self._variant_graphs, self._variants_dict, self._variant_computation_time = variant_factory.apply(
+        self._variants, self._variant_frequency, self._variant_graphs, self._variants_dict, self._variant_computation_time, self._variant_hash_time, self._variant_iso_time = variant_factory.apply(
             self, self._variant_calculation, parameters=self.parameters)

@@ -189,4 +189,4 @@ def apply(ocel, parameters):
             variant_event_map[e] += [v_id]
     ocel.log.log["event_variant"] = ocel.log.log["event_id"].map(variant_event_map)
     ocel.log.log.drop('event_objects', axis=1, inplace=True)
-    return variants, v_freq_list, variant_graphs, variants_dict, time.time() - s_time
+    return variants, v_freq_list, variant_graphs, variants_dict, time.time() - s_time, 0, 0

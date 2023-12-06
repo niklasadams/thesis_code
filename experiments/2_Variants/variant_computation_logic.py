@@ -54,6 +54,9 @@ def compute_variants(param):
         if min_o_count > num_obs:
             min_o_count = num_obs
         sum_o_counts += num_obs
+    hashing_technique = None
+    if "hashing_technique" in param.keys():
+        hashing_technique = param["hashing_technique"]
     if computation_time == -1:
         individual_results = {
             "Log": log,
@@ -61,10 +64,13 @@ def compute_variants(param):
             "Extraction Technique": extraction_technique,
             "Number of Process Executions": len(ocel.process_executions),
             "Variant Computation": comp_type,
+            "Hashing Function":hashing_technique,
             "Naive Object String Projection": naive_projection,
             "Number of Variants": -1,
             "Type": o_type,
             "Computation Time": -1,
+            "Hashing Time": -1,
+            "Validation Time": -1,
             "Average Number of Objects per Execution": sum_o_counts / len(ocel.process_executions),
             "Average Number of Events per Execution": sum_e_counts / len(ocel.process_executions),
             "Number of Object Types": len(ocel.object_types)
@@ -76,10 +82,13 @@ def compute_variants(param):
             "Extraction Technique": extraction_technique,
             "Number of Process Executions": len(ocel.process_executions),
             "Variant Computation": comp_type,
+            "Hashing Function": hashing_technique,
             "Naive Object String Projection": naive_projection,
             "Number of Variants": len(ocel.variants),
             "Type": o_type,
             "Computation Time": computation_time,
+            "Hashing Time":ocel.variant_hash_time,
+            "Validation Time":ocel.variant_iso_time,
             "Average Number of Objects per Execution": sum_o_counts / len(ocel.process_executions),
             "Average Number of Events per Execution": sum_e_counts / len(ocel.process_executions),
             "Number of Object Types": len(ocel.object_types)
