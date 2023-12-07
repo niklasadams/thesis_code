@@ -158,7 +158,7 @@ def apply(ocel, parameters):
                         if found:
                             break
             if (time.time() - start_time) > timeout:
-                return None, None, None, None, -1
+                return None, None, None, None, -1, -1, -1
                 raise Exception("timeout")
             if found:
                 continue

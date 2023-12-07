@@ -22,9 +22,9 @@ def sns_settings(legend  = True, legend_position = "upper center", size_reducer 
 sns.set_theme()
 figsize = (8,5)
 
-df = pd.read_csv("computationtime_results_after_Fin.csv")
-df2 = pd.read_csv("computationtime_results_after_P2P.csv")
-df = df.append(df2, ignore_index=True)
+df = pd.read_csv("results_a_scalability_full.csv")
+#df2 = pd.read_csv("computationtime_results_after_P2P.csv")
+#df = df.append(df2, ignore_index=True)
 print(df.columns)
 print(df.head())
 df["Log"] = df["Log"].replace({"P2P":"P2P",

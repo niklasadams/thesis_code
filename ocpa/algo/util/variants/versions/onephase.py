@@ -62,13 +62,14 @@ def apply(ocel, parameters):
                             (exec, case_id))
                         found = True
                         break
+            if (time.time() - start_time) > timeout:
+                return None, None, None, None, -1, -1, -1
+                raise Exception("timeout")
             if found:
                 continue
             subclass_counter += 1
             subclass_mappings[subclass_counter] = [(exec, case_id)]
-            if (time.time() - start_time) > timeout:
-                return None, None, None, None, -1
-                raise Exception("timeout")
+
         for ind in subclass_mappings.keys():
             variants_dict[_class + str(ind)] = [case_id for (exec,
                                                              case_id) in subclass_mappings[ind]]
