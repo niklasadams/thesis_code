@@ -18,8 +18,8 @@ from tqdm import tqdm
 extraction_techniques = [CONN_COMP,LEAD_TYPE]
 #computation_techniques = [TWO_PHASE]#[NAIVE_MAPPING,ONE_PHASE,ONE_PHASE,TWO_PHASE]
 hashing_techniques = [WL_1,WL_2, WL_STANDARD]
-json_logs = ["P2P"]#["Order","P2P"]#["P2P"]#[]#["P2P"]#["P2P","Order"]
-csv_logs = []#["Fin","Incident"]#["Incident","Fin"]
+json_logs = []#["Order","P2P"]#["P2P"]#[]#["P2P"]#["P2P","Order"]
+csv_logs = ["Fin"]#["Fin","Incident"]#["Incident","Fin"]
 logs = json_logs + csv_logs
 log_files = {"P2P":"../../sample_logs/jsonocel/P2P_large.jsonocel",
              "Fin":"../../sample_logs/csv/BPI2017-Final.csv",
@@ -110,11 +110,15 @@ for log in logs:
     print(param_space)
     total_param_space += param_space
 
-pool = ThreadPool(4)
-results = list(tqdm(pool.imap(compute_variants, total_param_space), total=len(total_param_space)))
+#pool = ThreadPool(4)
+results = []#list(tqdm(pool.imap(compute_variants, total_param_space), total=len(total_param_space)))
+for i in tqdm(range(0,len(total_param_space))):
+    param = total_param_space[i]
+    result = compute_variants(param)
+    results.append(result)
 print(results)
 results_dict = pd.DataFrame(results)
-results_dict.to_csv("hashing_validation_results.csv")
+results_dict.to_csv("hashing_validation_results_local_fin.csv")
 
 #results_dict = pd.DataFrame(results)
 #results_dict.to_csv("results_scalability_a_after_Fin_P2P_Order.csv")

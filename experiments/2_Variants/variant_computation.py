@@ -17,7 +17,7 @@ from tqdm import tqdm
 extraction_techniques = [CONN_COMP,LEAD_TYPE]
 computation_techniques = [NAIVE_MAPPING,ONE_PHASE,TWO_PHASE]#[ONE_PHASE,TWO_PHASE]
 json_logs = ["Order","P2P"]#["P2P"]#[]#["P2P"]#["P2P","Order"]
-csv_logs = ["Fin","Incident"]#["Incident","Fin"]
+csv_logs = ["Incident","Fin"]#,"Incident"]#["Incident","Fin"]
 logs = json_logs + csv_logs
 log_files = {"P2P":"../../sample_logs/jsonocel/P2P_large.jsonocel",
              "Fin":"../../sample_logs/csv/BPI2017-Final.csv",
@@ -118,6 +118,7 @@ for log in logs:
 
 pool = ThreadPool(4)
 results = list(tqdm(pool.imap(compute_variants, total_param_space), total=len(total_param_space)))
+#results = compute_variants(total_param_space[0])
 print(results)
 results_dict = pd.DataFrame(results)
 results_dict.to_csv("computationtime_results.csv")
