@@ -28,6 +28,24 @@ def filter_infrequent_activities(ocel, threshold):
             break
 
     filtered_activities = activities[:last_filtered_activity+1]
+    return filtered_activities(ocel,filter_activities)
+
+
+def filter_activities(ocel, activities):
+    '''
+    Filters activities from an OCEL
+
+    :param ocel: Object-centric event log
+    :type ocel: :class:`OCEL <ocpa.objects.log.ocel.OCEL>`
+
+    :param activities: list of activities to be included.
+    :type activities: list[str]
+
+    :return: Object-centric event log
+    :rtype: :class:`OCEL <ocpa.objects.log.ocel.OCEL>`
+
+    '''
+
     sublog = ocel.log.log[ocel.log.log["event_activity"].isin(
-        filtered_activities)].copy()
+        activities)].copy()
     return log_util.copy_log_from_df(sublog, ocel.parameters)

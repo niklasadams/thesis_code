@@ -19,7 +19,7 @@ def construct_de_jure_net():
     [ocpn.places.add(p) for p in [p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11]]
 
     act1 = "Create application"
-    act2 = "Accept"
+    act2 = "Submit"
     act3 = "Create offer"
     act4 = "Call"
     act5 = "Accept offer"
@@ -58,4 +58,4 @@ def construct_de_jure_net():
     ocpn.add_arc(ObjectCentricPetriNet.Arc(t6, p11))
     ocpn.add_arc(ObjectCentricPetriNet.Arc(t7, p11))
 
-    return ocpn
+    return ocpn, [act1,act2,act3,act4,act5,act6]

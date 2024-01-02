@@ -40,3 +40,17 @@ def get_objects_of_variants(ocel, variants):
                 obs[ob[0]].add(ob[1])
 
     return obs
+
+
+def flatten_log(ocel, object_type):
+    new_event_df = ocel.log.log.copy().explode(object_type,ignore_index = True)
+    drop_object_types = [ot for ot in ocel.object_types if ot != object_type]
+    new_event_df = new_event_df.drop(columns= drop_object_types)
+    new_event_df = new_event_df[new_event_df[object_type].notnull()]
+    new_event_df[object_type] = new_event_df[object_type].apply(lambda x: [x] if x else [])
+    #new_event_df = new_event_df[new_event_df.apply(lambda x: len(x[object_type]) > 0 )]
+    new_event_df["event_id"] = list(range(1,len(new_event_df)+1))
+    params = ocel.parameters.copy()
+    params["obj_names"] = [object_type]
+    new_log = copy_log_from_df(new_event_df, params)
+    return new_log

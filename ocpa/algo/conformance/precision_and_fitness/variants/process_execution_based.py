@@ -5,11 +5,8 @@ import itertools
 from itertools import product
 import numpy
 from multiprocessing.dummy import Pool as ThreadPool
-import ocpa.algo.conformance.precision_and_fitness.utils as utils
-import tqdm
-
 from ocpa.algo.util.filtering.log import case_filtering
-
+import ocpa.algo.conformance.precision_and_fitness.utils as utils
 
 def context_to_string_verbose(context):
     cstr = ""
@@ -269,7 +266,7 @@ def enabled_model_activities_multiprocessing(contexts, bindings, ocpn, object_ty
     context_list = [contexts[i] for i in contexts.keys()]
     binding_list = [bindings[i] for i in contexts.keys()]
     result = pool.starmap(calculate_single_event,
-                          tqdm.tqdm(zip(context_list, binding_list, itertools.repeat(object_types), itertools.repeat(ocpn)), total = len(context_list)))
+                          zip(context_list, binding_list, itertools.repeat(object_types), itertools.repeat(ocpn)))
     results = {}
     total_times = numpy.array([0.0, 0.0, 0.0, 0.0, 0.0])
     for (k, v), times in result:
@@ -280,81 +277,40 @@ def enabled_model_activities_multiprocessing(contexts, bindings, ocpn, object_ty
     return results
 
 
-def calculate_precision_and_fitness(ocel, context_mapping, en_l, en_m, e_p_freq):
+def calculate_precision_and_fitness(ocel, context_mapping, en_l, en_m):
     prec = []
     fit = []
     skipped = 0
-    print(en_m.values())
-    acts = list(set([en for ens in en_l.values() for en in ens]).union(set([en for ens in en_m.values() for en in ens])))
-    L_c = {a:0 for a in acts}
-    M_c = {a:0 for a in acts}
-    for a in acts:
-        c_counter = 0
-        c_l_counter = 0
-        c_m_counter = 0
-        for context in list(set(en_l.keys()).union(set(en_m.keys()))):
-            in_l = a in en_l[context]
-            in_m = a in en_m[context]
-            if in_l or in_m:
-                c_counter+=1
-                if in_l:
-                    c_l_counter+=1
-                if in_m:
-                    c_m_counter+=1
-        L_c[a] = c_l_counter/c_counter
-        M_c[a] = c_m_counter/c_counter
     for index, row in ocel.log.iterrows():
         e_id = row["event_id"]
         context = context_mapping[e_id]
         en_l_a = en_l[context_to_string(context)]
         en_m_a = en_m[context_to_string(context)]
         if len(en_m[context_to_string(context)]) == 0 or (set(en_l_a).intersection(en_m_a) == set()):
-            skipped += e_p_freq[e_id]
-            fit+=[0 for _ in range(0,e_p_freq[e_id])]
+            skipped += 1
+            fit.append(0)
             continue
-        prec+=[len(set(en_l[context_to_string(context)]).intersection(set(en_m[context_to_string(context)]))) / float(
-                len(en_m[context_to_string(context)])) for _ in range(0,e_p_freq[e_id]) ]
-        fit+=[len(set(en_l[context_to_string(context)]).intersection(set(en_m[context_to_string(context)]))) / float(
-                len(en_l[context_to_string(context)])) for _ in range(0,e_p_freq[e_id])]
+        prec.append(
+            len(set(en_l[context_to_string(context)]).intersection(set(en_m[context_to_string(context)]))) / float(
+                len(en_m[context_to_string(context)])))
+        fit.append(
+            len(set(en_l[context_to_string(context)]).intersection(set(en_m[context_to_string(context)]))) / float(
+                len(en_l[context_to_string(context)])))
     if len(fit) == 0:
-        return 0, skipped, 0, {}, {}
+        return 0, skipped, 0
     if len(prec) == 0:
-        return 0, skipped, sum(fit) / len(fit), {}, {}
-    return sum(prec) / len(prec), skipped, sum(fit) / len(fit), M_c,L_c
+        return 0, skipped, sum(fit) / len(fit)
+    return sum(prec) / len(prec), skipped, sum(fit) / len(fit)
 
 
 def calculate(ocel,ocpn,contexts=None,bindings=None):
-    '''
-        Calculation precision and fitness for an object-centric Petri net with respect to an object-centric event log. The
-        measures are calculated according to replaying the event log and checking enabled and executed behavior. Contexts and
-        bindings can be pre-computed and passed to the method to save computation time upon multiple calling. If not given,
-        contexts and binding wil be calculated.
-
-        :param ocel: Object-centric event log
-        :type ocel: :class:`OCEL <ocpa.objects.log.ocel.OCEL>`
-
-        :param ocpn: Object-centric Petri net
-        :type ocpn: :class:`OCPN <ocpa.objects.oc_petri_net.obj.ObjectCentricPetriNet>`
-
-        :param contexts: multiset of previously executed traces of activities for each event (can be computed by calling :func:`the corresponding function <ocpa.algo.evaluation.precision_and_fitness.utils.calculate_contexts_and_bindings>`)
-        :type contexts: Dict
-
-        :param bindings: bindings for each event (can be computed by calling :func:`the corresponding function <ocpa.algo.evaluation.precision_and_fitness.utils.calculate_contexts_and_bindings>`)
-        :type bindings: Dict
-
-        :return: precision, fitness
-        :rtype: float, float
-
-        '''
-    p_freq = {ocel.variants_dict[ocel.variants[i]][0]: int((ocel.variant_frequencies[i]*len(ocel.process_executions))//1) for i in range(0,len(ocel.variants))}
-    #print(p_freq)
+    p_freq = {ocel.variants_dict[v_set][0]:ocel.variant_frequencies[v_set] for v_set in ocel.variants}
     reduced_p_set = list(p_freq.keys())
-    e_p_freq = {e:p_freq[case] for case in p_freq.keys() for e in ocel.process_executions[case]}
-    ocel = case_filtering.filter_process_executions(ocel, [ocel.process_executions[c] for c in reduced_p_set])
-    object_types = ocel.object_types
+    ocel = case_filtering.filter_process_executions(ocel,[ocel.process_executions[c] for c in reduced_p_set])
     if contexts == None or bindings == None:
         contexts, bindings = utils.calculate_contexts_and_bindings(ocel)
     en_l = enabled_log_activities(ocel.log, contexts)
-    en_m = enabled_model_activities_multiprocessing(contexts, bindings, ocpn, object_types)
-    precision, skipped_events, fitness, L_c, M_c = calculate_precision_and_fitness(ocel.log, contexts, en_l, en_m, e_p_freq)
-    return precision, fitness, skipped_events, L_c, M_c
+    en_m = enabled_model_activities_multiprocessing(contexts, bindings, ocpn, ocel.object_types)
+
+    precision, skipped_events, fitness = calculate_precision_and_fitness(ocel.log, contexts, en_l, en_m)
+    return precision, fitness
