@@ -28,6 +28,8 @@ df2 = pd.read_csv("results_variants_b_cluster_order.csv")
 df = df.append(df2, ignore_index=True)
 df2 = pd.read_csv("results_variants_b_cluster_inc.csv")
 df = df.append(df2, ignore_index=True)
+df2 = pd.read_csv("results_variants_b_cluster_fin.csv")
+df = df.append(df2, ignore_index=True)
 print(df.columns)
 print(df.head())
 df["Log"] = df["Log"].replace({"P2P":"P2P",
@@ -75,7 +77,7 @@ df["Extraction Technique"] = df.apply(lambda x: x["Extraction Technique"] +" "+x
 #         plt.show()
 
 
-for log in []:# df["Log"].unique():
+for log in df["Log"].unique():
     rows = (len(df[df["Log"]==log]["Extraction Technique"].unique())+1)//2
     print(rows)
     figsize = (7, 2.5 * rows+(4-rows)/2)

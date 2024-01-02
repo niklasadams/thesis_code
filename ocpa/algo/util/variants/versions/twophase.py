@@ -1,3 +1,4 @@
+import sys
 import time
 import networkx as nx
 import ocpa.algo.util.variants.versions.utils.helper as helper_functions
@@ -65,6 +66,7 @@ def apply(ocel,parameters):
         variants_dict[variant_string].append(case_id)
         variants_graph_dict[variant_string].append(case)
         case_id += 1
+
     hash_time = time.time()-hash_time
     iso_time = time.time()
     if parameters["exact_variant_calculation"] if "exact_variant_calculation" in parameters.keys() else False:

@@ -108,3 +108,11 @@ for log in df["Log"].unique():
     #sns_settings(legend=True, legend_position = "upper left", size_reducer = 0)
     plt.savefig("plots/algorithms/variant_scalability_"+log.replace(" ","_")+".pdf", format='pdf', transparent = False)
     plt.show()
+
+example_df = df[(df["Log"]=="P2P" ) & (df["Extraction Technique"] =="Leading Type goods receipt") &(df["Variant Computation"] =="Object Mapping")]
+sns.lineplot(data=example_df, x="Number of Process Executions", y="Computation Time", hue = "Variant Computation")
+sns_settings()
+plt.title("Variant Equivalence: P2P (Leading Type goods receipt)", fontsize =16)
+plt.tight_layout()
+plt.savefig("plots/variant_computation_naive_example.pdf")
+plt.show()

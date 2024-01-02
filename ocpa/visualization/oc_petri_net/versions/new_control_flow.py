@@ -3,7 +3,10 @@ import tempfile
 from graphviz import Digraph
 from ocpa.objects.oc_petri_net.obj import ObjectCentricPetriNet
 
-COLORS = ['#7f66ff',
+COLORS = ['#00549F',
+          '#57AB27',
+          '#7f66ff',
+            '#F6A800',
           '#ff3399',
           '#f58b55',
           '#f25e65',
