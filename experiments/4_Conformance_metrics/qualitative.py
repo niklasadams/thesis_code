@@ -7,7 +7,6 @@ import ocpns as ocpns
 import pickle
 #load the petri net
 ocpn, filtered_acts = ocpns.construct_de_jure_net()
-print(ocpn)
 gviz = ocpn_vis_factory.apply(ocpn, parameters={'format': 'svg'})
 ocpn_vis_factory.view(gviz)
 ocpn_vis_factory.save(gviz, "de_jure_net.svg")
@@ -28,6 +27,6 @@ print(len(filtered_ocel.log.log))
 #compute the fitness of the process executions
 precision, fitness, skipped_events, L_c, M_c = evaluator.apply(filtered_ocel,ocpn)
 results = {"precision":precision,"fitness":fitness,"L_c":L_c,"M_c":M_c}
-with open('results.pickle', 'wb') as file:
+with open('qualitative.pickle', 'wb') as file:
     b = pickle.dump(results,file)
 

@@ -284,7 +284,6 @@ def calculate_precision_and_fitness(ocel, context_mapping, en_l, en_m, e_p_freq)
     prec = []
     fit = []
     skipped = 0
-    print(en_m.values())
     acts = list(set([en for ens in en_l.values() for en in ens]).union(set([en for ens in en_m.values() for en in ens])))
     L_c = {a:0 for a in acts}
     M_c = {a:0 for a in acts}

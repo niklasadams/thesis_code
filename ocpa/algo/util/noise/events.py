@@ -7,6 +7,7 @@ def switch_activities(ocel, noise_level, allowed_switches):
     new_rows = []
 
     for index, row in new_event_df.iterrows():
+        applied_noise = False
         for object_type, activity_pairs in allowed_switches.items():
             for activity_pair in activity_pairs:
                 if row['event_activity'] == activity_pair[0] and pd.notna(row[object_type]):
@@ -23,7 +24,10 @@ def switch_activities(ocel, noise_level, allowed_switches):
 
                         # Add the new row to the list
                         new_rows.append(new_row)
-
+                        applied_noise = True
+                        break
+            if applied_noise:
+                break
     # Add new rows to the original DataFrame
     for new_row in new_rows:
         new_event_df = new_event_df.append(new_row, ignore_index=True)
@@ -31,7 +35,6 @@ def switch_activities(ocel, noise_level, allowed_switches):
     #sort by time
     new_event_df = new_event_df.sort_values(by='event_timestamp')
     new_event_df["event_id"] = list(range(1,len(new_event_df)+1))
-    print(new_event_df)
     new_log = log_util.copy_log_from_df(new_event_df, ocel.parameters)
     return new_log
 

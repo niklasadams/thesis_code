@@ -17,37 +17,37 @@ parameters = {"obj_names": ["application", "offer"],
                         "sep": ","}
 ocel = ocel_import_factory.apply(file_path="../../sample_logs/csv/BPI2017-smp.csv", parameters=parameters)
 filtered_ocel_ = activity_filtering.filter_activities(ocel,filtered_acts)
-noise_level = 1
-allowed_switches = {
-    "offer":[("Accept offer","Cancel offer")]
-}
-filtered_ocel = event_noise.switch_activities(filtered_ocel_,noise_level,allowed_switches=allowed_switches)
-precision, fitness, skipped_events, L_c, M_c = evaluator.apply(filtered_ocel,ocpn)
-results = {"precision":precision,"fitness":fitness,"L_c":L_c,"M_c":M_c}
-print(results)
-print(ocel.object_types[0])
-fl1_log = log_util.flatten_log(filtered_ocel,ocel.object_types[0])
-print(fl1_log.log.log)
-ocpn_1 = ocpn.flatten_to_type(ocel.object_types[0])
-ocpn_vis_factory.view(ocpn_vis_factory.apply(ocpn_1, parameters={'format': 'svg'}))
-precision, fitness, skipped_events, L_c, M_c = evaluator.apply(fl1_log,ocpn_1)
-results = {"precision":precision,"fitness":fitness,"L_c":L_c,"M_c":M_c}
-print(results)
-print(ocel.object_types[1])
-fl2_log = log_util.flatten_log(filtered_ocel,ocel.object_types[1])
-print(fl2_log.log.log)
-print(len(fl2_log.variants))
-print(fl2_log.variants_dict[fl2_log.variants[0]][0])
-print(fl2_log.process_executions[fl2_log.variants_dict[fl2_log.variants[0]][0]])
-#print([ocelfor e in fl2_log.process_executions[fl2_log.variants_dict[fl2_log.variants[0]][0]]])
-ocpn_2 = ocpn.flatten_to_type(ocel.object_types[1])
-ocpn_vis_factory.view(ocpn_vis_factory.apply(ocpn_2, parameters={'format': 'svg'}))
-precision, fitness, skipped_events, L_c, M_c = evaluator.apply(fl2_log,ocpn_2)
-results = {"precision":precision,"fitness":fitness,"L_c":L_c,"M_c":M_c}
-print(results)
+results_dict = {}
+for noise_level in [0.1]:#[0.01,0.05]+[i*0.1 for i in range(1,10)]:
+    #conduct experiments 5 times for each noise level to average out the differences
+    for _ in range(0,1):
+        allowed_switches = {
+            "offer":[("Accept offer","Cancel offer"),("Call","Mail")],
+            "application":[("Create offer","Cancel application"), ("Submit","Withdraw")]
+        }
+        filtered_ocel = event_noise.switch_activities(filtered_ocel_,noise_level,allowed_switches=allowed_switches)
+        precision, fitness, skipped_events, L_c, M_c = evaluator.apply(filtered_ocel,ocpn)
+        results_dict.setdefault(("oc",noise_level),[])
+        results_dict[("oc",noise_level)].append({"precision":precision,"fitness":fitness, "skipped_events": skipped_events})
+        print("OC, "+str(noise_level))
+        print({"precision":precision,"fitness":fitness, "skipped_events": skipped_events})
+        flat_fits = []
+        flat_precs = []
+        flat_skipped = []
+        for ot in filtered_ocel.object_types:
+            fl_log = log_util.flatten_log(filtered_ocel,ot)
+            ocpn_1 = ocpn.flatten_to_type(ot)
+            precision, fitness, skipped_events, L_c, M_c = evaluator.apply(fl_log,ocpn_1)
+            flat_fits.append(fitness)
+            flat_precs.append(precision)
+            flat_skipped.append(skipped_events)
+        fitness = sum(flat_fits)/len(flat_fits)
+        precision = sum(flat_precs)/len(flat_precs)
+        skipped_events = sum(flat_skipped)/len(flat_skipped)
+        results_dict.setdefault(("flat",noise_level),[])
+        results_dict[("flat", noise_level)].append({"precision": precision, "fitness": fitness, "skipped_events": skipped_events})
+        print("Flat, "+str(noise_level))
+        print({"precision":precision,"fitness":fitness, "skipped_events": skipped_events})
+with open('comparison.pickle', 'wb') as file:
+    b = pickle.dump(results_dict,file)
 
-    #In each iteration, randomly introduce some noise
-
-    #flatten the event log
-
-    #calculate both fitnesses
