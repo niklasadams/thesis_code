@@ -7,6 +7,7 @@ from ocpa.algo.util.noise import events as event_noise
 from ocpa.objects.log.util import misc as log_util
 import ocpns as ocpns
 import pickle
+import time
 #load the petri net
 ocpn, filtered_acts = ocpns.construct_de_jure_net()
 #filter the log to remove all other activities
@@ -26,14 +27,17 @@ for noise_level in [0.1]:#[0.01,0.05]+[i*0.1 for i in range(1,10)]:
             "application":[("Create offer","Cancel application"), ("Submit","Withdraw")]
         }
         filtered_ocel = event_noise.switch_activities(filtered_ocel_,noise_level,allowed_switches=allowed_switches)
+        s_time = time.time()
         precision, fitness, skipped_events, L_c, M_c = evaluator.apply(filtered_ocel,ocpn)
+        oc_time = time.time() - s_time
         results_dict.setdefault(("oc",noise_level),[])
-        results_dict[("oc",noise_level)].append({"precision":precision,"fitness":fitness, "skipped_events": skipped_events})
+        results_dict[("oc",noise_level)].append({"precision":precision,"fitness":fitness, "time":oc_time, "skipped_events": skipped_events})
         print("OC, "+str(noise_level))
-        print({"precision":precision,"fitness":fitness, "skipped_events": skipped_events})
+        print({"precision":precision,"fitness":fitness, "time":oc_time, "skipped_events": skipped_events})
         flat_fits = []
         flat_precs = []
         flat_skipped = []
+        s_time = time.time()
         for ot in filtered_ocel.object_types:
             fl_log = log_util.flatten_log(filtered_ocel,ot)
             ocpn_1 = ocpn.flatten_to_type(ot)
@@ -44,10 +48,11 @@ for noise_level in [0.1]:#[0.01,0.05]+[i*0.1 for i in range(1,10)]:
         fitness = sum(flat_fits)/len(flat_fits)
         precision = sum(flat_precs)/len(flat_precs)
         skipped_events = sum(flat_skipped)/len(flat_skipped)
+        flat_time = time.time() - s_time
         results_dict.setdefault(("flat",noise_level),[])
-        results_dict[("flat", noise_level)].append({"precision": precision, "fitness": fitness, "skipped_events": skipped_events})
+        results_dict[("flat", noise_level)].append({"precision": precision, "fitness": fitness, "time":flat_time, "skipped_events": skipped_events})
         print("Flat, "+str(noise_level))
-        print({"precision":precision,"fitness":fitness, "skipped_events": skipped_events})
+        print({"precision":precision,"fitness":fitness, "time":flat_time, "skipped_events": skipped_events})
 with open('comparison.pickle', 'wb') as file:
     b = pickle.dump(results_dict,file)
 
