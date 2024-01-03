@@ -16,12 +16,12 @@ parameters = {"obj_names": ["application", "offer"],
                         "act_name": "event_activity",
                         "time_name": "event_timestamp",
                         "sep": ","}
-ocel = ocel_import_factory.apply(file_path="../../sample_logs/csv/BPI2017-smp.csv", parameters=parameters)
+ocel = ocel_import_factory.apply(file_path="../../sample_logs/csv/BPI2017-Final.csv", parameters=parameters)
 filtered_ocel_ = activity_filtering.filter_activities(ocel,filtered_acts)
 results_dict = {}
-for noise_level in [0.1]:#[0.01,0.05]+[i*0.1 for i in range(1,10)]:
+for noise_level in [0.01,0.05]+[i*0.1 for i in range(1,10)]:
     #conduct experiments 5 times for each noise level to average out the differences
-    for _ in range(0,1):
+    for _ in range(0,5):
         allowed_switches = {
             "offer":[("Accept offer","Cancel offer"),("Call","Mail")],
             "application":[("Create offer","Cancel application"), ("Submit","Withdraw")]
