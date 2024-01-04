@@ -19,7 +19,7 @@ parameters = {"obj_names": ["application", "offer"],
 ocel = ocel_import_factory.apply(file_path="../../sample_logs/csv/BPI2017-Final.csv", parameters=parameters)
 filtered_ocel_ = activity_filtering.filter_activities(ocel,filtered_acts)
 results_dict = {}
-for noise_level in [0.01,0.05]+[i*0.1 for i in range(1,10)]:
+for noise_level in [i*0.01 for i in range(1,10)]:
     #conduct experiments 5 times for each noise level to average out the differences
     for _ in range(0,5):
         allowed_switches = {
@@ -53,6 +53,6 @@ for noise_level in [0.01,0.05]+[i*0.1 for i in range(1,10)]:
         results_dict[("flat", noise_level)].append({"precision": precision, "fitness": fitness, "time":flat_time, "skipped_events": skipped_events})
         print("Flat, "+str(noise_level))
         print({"precision":precision,"fitness":fitness, "time":flat_time, "skipped_events": skipped_events})
-with open('comparison.pickle', 'wb') as file:
+with open('comparison_10.pickle', 'wb') as file:
     b = pickle.dump(results_dict,file)
 
