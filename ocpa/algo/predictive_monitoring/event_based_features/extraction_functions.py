@@ -262,6 +262,7 @@ def lagging_time(node, ocel, params):
     object_type = params[0]
     cases = ocel.process_execution_mappings[node.event_id]
     res = []
+    duration = 0
     for case in cases:
         in_edges = ocel.graph.eog.subgraph(ocel.process_executions[case]).in_edges(node.event_id)
         preset = [source for (source, target) in in_edges]
@@ -273,10 +274,12 @@ def lagging_time(node, ocel, params):
             ot_maxs = []
             for ot in ocel.object_types:
                 ot_end_timestamps = [ocel.get_value(e, "event_timestamp") for e in preset if ocel.get_value(e, ot)]
-                ot_maxs.append(max(ot_end_timestamps))
+                if len(ot_end_timestamps) != 0:
+                    ot_maxs.append(max(ot_end_timestamps))
             ot_end_timestamps = [ocel.get_value(e, "event_timestamp") for e in preset if
                                  ocel.get_value(e, object_type)]
-            duration = (max(ot_end_timestamps) - min(ot_maxs)).total_seconds()
+            if len(ot_end_timestamps) != 0 and len(ot_maxs) != 0:
+                duration = (max(ot_end_timestamps) - min(ot_maxs)).total_seconds()
         res.append(duration)
 
     return sum(res) / len(res)
