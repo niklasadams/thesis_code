@@ -27,10 +27,12 @@ def apply(ocel, parameters):
     cases = []
     obs = []
     case_mapping = {}
+    case_index = 0
     for o,case in object_to_events.items():
         obs.append([o])
         cases.append(case)
         for event in case:
-            case_mapping.setdefault(event,[]).append(o)
+            case_mapping.setdefault(event,[]).append(case_index)
+        case_index+=1
 
     return cases, obs, case_mapping, time.time()-s_time
