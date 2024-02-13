@@ -6,7 +6,7 @@ from ocpa.algo.predictive_monitoring import factory as predictive_monitoring
 import pandas as pd
 from ocpa.algo.predictive_monitoring import tabular
 from sklearn.metrics import accuracy_score, mean_squared_error
-
+from ocpa.algo.util.flattening import factory as flattening_factory
 
 
 def evaluate_categorical_features(features, flat_features, cat_features):
@@ -19,8 +19,8 @@ def evaluate_categorical_features(features, flat_features, cat_features):
     #print(features[('event_char_value', ('event_id',))])
     # remove non intersecting events and ount the numbe rof removed events
 
-    # Handle the convergene in flattening
-    flat_event_ids = set(list(flat_features[('event_char_value', ('event_id',))].values))
+    # Handle the convergence in flattening
+    flat_event_ids = set(list(flat_features[('event_char_value', ('event_identifier',))].values))
     full_feature_length = len(features)
     print(len(features))
     features = features[features[('event_char_value', ('event_id',))].apply(lambda x: x in flat_event_ids)]
@@ -29,13 +29,13 @@ def evaluate_categorical_features(features, flat_features, cat_features):
 
     # sort according to event id
     features = features.sort_values(by = ('event_char_value', ('event_id',)))
-    flat_features = flat_features.sort_values(by=('event_char_value', ('event_id',)))
+    flat_features = flat_features.sort_values(by=('event_char_value', ('event_identifier',)))
 
     # for flat features we need to address the issue of convergence, i.e., an event being in the extracted
     # features multiple times with potentially different extracted values. For categorical features,
     # we employ a unanimous voting to agree on a feature value, i.e., the value will only be 1 if it
     # is 1 for every duplication of the event
-    flat_features = flat_features.groupby(('event_char_value', ('event_id',))).agg("min").reset_index()
+    flat_features = flat_features.groupby(('event_char_value', ('event_identifier',))).agg("min").reset_index()
 
     # for each feature, determine the accuracy
     for feature in cat_features:
@@ -47,19 +47,19 @@ def evaluate_numerical_metrics(features,flat_features, num_features):
     error_results = {}
 
 
-    flat_event_ids = set(list(flat_features[('event_char_value', ('event_id',))].values))
+    flat_event_ids = set(list(flat_features[('event_char_value', ('event_identifier',))].values))
     full_feature_length = len(features)
     features = features[features[('event_char_value', ('event_id',))].apply(lambda x: x in flat_event_ids)]
     feature_diff = len(features) - full_feature_length
 
     # sort according to event id
     features = features.sort_values(by=('event_char_value', ('event_id',)))
-    flat_features = flat_features.sort_values(by=('event_char_value', ('event_id',)))
+    flat_features = flat_features.sort_values(by=('event_char_value', ('event_identifier',)))
 
     # for flat features we need to address the issue of convergence, i.e., an event being in the extracted
     # features multiple times with potentially different extracted values. For numerical features,
     # we employ a mean voting to agree on a feature value
-    flat_features = flat_features.groupby(('event_char_value', ('event_id',))).agg("mean").reset_index()
+    flat_features = flat_features.groupby(('event_char_value', ('event_identifier',))).agg("mean").reset_index()
 
     for feature in num_features:
         # first, we normalize both feature value sets by their joined maximum to retrieve comparable metrics
@@ -74,7 +74,7 @@ def evaluate_numerical_metrics(features,flat_features, num_features):
     return error_results, feature_diff
 
 
-extraction_techniques = [SINGLE_FLATTENING]#[CONN_COMP,SINGLE_FLATTENING]
+extraction_techniques = [CONN_COMP,SINGLE_FLATTENING]
 connected_components_extraction = CONN_COMP
 # Define Event Logs
 json_logs = ["P2P","Order"]
@@ -182,9 +182,11 @@ for log in logs:
             flat_log = ocel_json_import_factory.apply(log_files[log], parameters=param)
         else:
             flat_log = ocel_csv_import_factory.apply(log_files[log], parameters=param)
+        flat_log = flattening_factory.apply(flat_log)
+
 
         # extract relevant features
-        feature_storage_flat = predictive_monitoring.apply(flat_log, feature_set, [], workers = 1)
+        feature_storage_flat = predictive_monitoring.apply(flat_log, feature_set+[(predictive_monitoring.EVENT_CHAR_VALUE, ("event_identifier",))], [], workers = 1)
         features_flat = tabular.construct_table(
             feature_storage_flat, index_list=list(range(0, len(feature_storage_flat.feature_graphs))))
 
